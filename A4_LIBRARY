@@ -1,0 +1,51 @@
+CREATE TABLE Borrower( Rollno INT, Name VARCHAR(20), DateofIssue DATE, NameofBook VARCHAR(30), Status CHAR(1) );
+
+INSERT INTO Borrower VALUES (14,'Ram','2025-09-19','Operating System','I'), (27,'Soham','2025-10-24','Object Oriented Programming','I'), (34,'Mohan','2025-11-06','Microprocessor','I'),(48,'Om','2025-10-19','Mechanics','I');
+
+CREATE TABLE Fine(Rollno INT, Date DATE, Amount INT );
+
+DO $$
+DECLARE
+    roll INT := 14;  -- assign manually (since no parameters)
+    book_n VARCHAR := 'Operating System';
+    doi DATE;
+    diff INT;
+    fine_amt INT := 0;
+BEGIN
+    SELECT DateofIssue INTO doi
+    FROM Borrower
+    WHERE Rollno = roll AND NameofBook = book_n AND Status = 'I';
+
+    IF NOT FOUND THEN
+        RAISE NOTICE 'No book found for Roll No: % and Book: %', roll, book_n;
+        RETURN;
+    END IF;
+
+    diff := CURRENT_DATE - doi;
+
+    IF diff BETWEEN 15 AND 30 THEN
+        fine_amt := diff * 5;
+    ELSIF diff > 30 THEN
+        fine_amt := diff * 50;
+    ELSE
+        fine_amt := 0;
+    END IF;
+
+    IF fine_amt > 0 THEN
+        INSERT INTO Fine(Rollno, Date, Amount)
+        VALUES (roll, CURRENT_DATE, fine_amt);
+    END IF;
+
+    UPDATE Borrower SET Status = 'R' WHERE Rollno = roll AND NameofBook = book_n;
+
+    RAISE NOTICE 'Book submitted successfully for Roll No: %, Fine: %', roll, fine_amt;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE NOTICE 'Unexpected error occurred!';
+END;
+$$;
+
+SELECT * FROM Fine;
+select * from Borrower;
+
