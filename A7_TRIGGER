@@ -1,0 +1,62 @@
+Drop Table If Exists library_audit;
+Drop Table If Exists library;
+
+Create Table library (
+    bookid Int Primary Key,
+    bookname Varchar(50),
+    author Varchar(50),
+    price Int
+);
+
+Create Table library_audit (
+    action_type Varchar(10),
+    old_bookid Int,
+    old_bookname Varchar(50),
+    old_author Varchar(50),
+    old_price Int,
+    action_time Timestamp Default Current_Timestamp
+);
+
+Insert Into library Values
+(1, 'dbms', 'navathe', 500),
+(2, 'dsa', 'lipschutz', 400);
+
+Create Or Replace Function library_after_trigger_fn()
+Returns Trigger
+As $$
+Begin
+    If (Tg_Op = 'UPDATE') Then
+        Insert Into library_audit(action_type, old_bookid, old_bookname, old_author, old_price)
+        Values ('update', Old.bookid, Old.bookname, Old.author, Old.price);
+    Elsif (Tg_Op = 'DELETE') Then
+        Insert Into library_audit(action_type, old_bookid, old_bookname, old_author, old_price)
+        Values ('delete', Old.bookid, Old.bookname, Old.author, Old.price);
+    End If;
+    Return Null;
+End;
+$$ Language plpgsql;
+
+Create Trigger library_after_trigger
+After Update Or Delete On library
+For Each Row
+Execute Function library_after_trigger_fn();
+
+Create Or Replace Function library_before_trigger_fn()
+Returns Trigger
+As $$
+Begin
+    Raise Notice 'Before % on Book ID: %', Tg_Op, New.bookid;
+    Return New;
+End;
+$$ Language plpgsql;
+
+Create Trigger library_before_trigger
+Before Update On library
+For Each Row
+Execute Function library_before_trigger_fn();
+
+Update library Set price = 550 Where bookid = 1;
+Delete From library Where bookid = 2;
+
+Select * From library;
+Select * From library_audit;
