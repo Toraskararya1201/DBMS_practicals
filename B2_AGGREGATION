@@ -1,0 +1,57 @@
+use companyDB;
+
+db.createCollection("employees");
+
+db.employees.insertMany([
+  { _id: 1, name: "Alice", department: "HR", salary: 50000, age: 25, experience: 2 },
+  { _id: 2, name: "Bob", department: "IT", salary: 80000, age: 30, experience: 5 },
+  { _id: 3, name: "Charlie", department: "Finance", salary: 70000, age: 28, experience: 4 },
+  { _id: 4, name: "David", department: "IT", salary: 90000, age: 35, experience: 8 },
+  { _id: 5, name: "Eve", department: "HR", salary: 55000, age: 27, experience: 3 },
+  { _id: 6, name: "Frank", department: "Finance", salary: 75000, age: 32, experience: 6 }
+]);
+
+db.employees.find().pretty();
+
+db.employees.aggregate([
+  { $group: { _id: "$department", avgSalary: { $avg: "$salary" } } }
+]);
+
+db.employees.aggregate([
+  { $group: { _id: "$department", totalEmployees: { $sum: 1 } } }
+]);
+
+db.employees.aggregate([
+  { $match: { department: "IT" } },
+  { $group: { _id: "$department", avgSalary: { $avg: "$salary" } } }
+]);
+
+db.employees.aggregate([
+  { $group: { _id: "$department", avgSalary: { $avg: "$salary" } } },
+  { $sort: { avgSalary: -1 } }
+]);
+
+db.employees.aggregate([
+  {
+    $group: {
+      _id: "$department",
+      avgSalary: { $avg: "$salary" },
+      maxSalary: { $max: "$salary" },
+      totalEmployees: { $sum: 1 }
+    }
+  },
+  { $sort: { avgSalary: -1 } }
+]);
+
+db.employees.createIndex({ department: 1 });
+
+db.employees.getIndexes();
+
+db.employees.find({ department: "IT" }).explain("executionStats");
+
+db.employees.createIndex({ department: 1, salary: -1 });
+
+// ✅ Check again
+db.employees.getIndexes();
+
+db.employees.dropIndex({ department: 1 });
