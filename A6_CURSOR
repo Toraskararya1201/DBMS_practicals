@@ -1,0 +1,37 @@
+CREATE TABLE O_RollCall ( Roll INT PRIMARY KEY, Name VARCHAR(30),Class VARCHAR(10));
+
+CREATE TABLE N_RollCall (Roll INT,Name VARCHAR(30),Class VARCHAR(10));
+
+INSERT INTO O_RollCall VALUES (1, 'Ram', 'FY'),(2, 'Sita', 'SY'),(3, 'Om', 'TY');
+
+INSERT INTO N_RollCall VALUES (2, 'Sita', 'SY'),(3, 'Om', 'TY'),(4, 'Mohan', 'FY'),(5, 'Soham', 'TY');     
+
+CREATE OR REPLACE FUNCTION merge_rollcalls()
+RETURNS void AS $$
+DECLARE
+    v_roll  INT;
+    v_name  VARCHAR(30);
+    v_class VARCHAR(10);
+    c1 CURSOR (p_roll INT) FOR
+        SELECT Roll FROM O_RollCall WHERE Roll = p_roll;
+    rec RECORD;
+BEGIN
+    FOR rec IN SELECT * FROM N_RollCall LOOP
+        OPEN c1(rec.Roll);
+        FETCH c1 INTO v_roll;
+        IF NOT FOUND THEN
+            INSERT INTO O_RollCall VALUES (rec.Roll, rec.Name, rec.Class);
+            RAISE NOTICE 'Inserted Roll: %, Name: %', rec.Roll, rec.Name;
+        ELSE
+            RAISE NOTICE 'Skipped duplicate Roll: %', rec.Roll;
+        END IF;
+        CLOSE c1;
+    END LOOP;
+    RAISE NOTICE 'Merge complete!';
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT merge_rollcalls();
+
+SELECT * FROM O_RollCall;
+
