@@ -1,0 +1,73 @@
+use p1;
+db.createCollection("students");
+
+db.students.insertOne({
+  name: "Aarav",
+  age: 20,
+  course: "Computer Science",
+  marks: 85
+});
+
+db.students.insertMany([
+  { name: "Riya", age: 22, course: "IT", marks: 91 },
+  { name: "Karan", age: 19, course: "AI", marks: 78 },
+  { name: "Priya", age: 21, course: "Data Science", marks: 88 },
+  { name: "Neha", age: 23, course: "IT", marks: 95 }
+]);
+
+db.students.find();
+
+db.students.find({ course: "IT" });
+
+db.students.find({ marks: { $gt: 80 } });
+
+db.students.find({
+  $and: [
+    { course: "IT" },
+    { marks: { $gt: 85 } }
+  ]
+});
+
+db.students.find({
+  $or: [
+    { course: "AI" },
+    { marks: { $lt: 80 } }
+  ]
+});
+
+db.students.updateOne(
+  { name: "Aarav" },
+  { $set: { marks: 90 } }
+);
+
+db.students.updateMany(
+  { course: "IT" },
+  { $set: { course: "Information Technology" } }
+);
+db.students.deleteOne({ name: "Karan" });
+
+db.students.deleteMany({ marks: { $lt: 80 } });
+
+db.students.insertOne({
+  name: "Meera",
+  age: 24,
+  course: "AI",
+  marks: 92
+});
+
+db.students.find({ marks: { $gte: 85 } });
+
+db.students.find({ age: { $lte: 22 } });
+
+db.students.find({ course: { $ne: "Data Science" } });
+
+db.students.find({
+  $and: [
+    { marks: { $gt: 80 } },
+    { age: { $lt: 23 } }
+  ]
+});
+
+show dbs;
+show collections;
+db.students.find().pretty();
