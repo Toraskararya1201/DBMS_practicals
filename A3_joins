@@ -1,0 +1,33 @@
+CREATE DATABASE practical_3;
+use practical_3;
+create table departments (departmentID int primary key, departmentname  varchar(50) NOT NULL);
+create table Employees ( EmployeeID INT PRIMARY KEY, FirstName VARCHAR(50), LastName VARCHAR(50), DepartmentID INT, Salary DECIMAL(10,2), FOREIGN KEY (DepartmentID) REFERENCES Departments(DepartmentID));
+create table Projects (projectID int primary key, projectname varchar(100));
+create table employeeprojects (employeeID int, ProjectID int, primary key (EmployeeID, projectID), foreign key (employeeID) references employees(employeeID), foreign key (projectID) references projects(projectID));
+insert into departments values (1, 'HR'),(2, 'IT'),(3, 'Finance');
+Insert into employees values(101, 'John', 'Doe', 1, 50000), (102, 'Emma', 'Watson', 2, 60000), (103, 'Liam', 'Smith', 2, 70000), (104, 'Olivia', 'Brown', 3, 55000), (105, 'Noah', 'Johnson', NULL, 45000); -- Employee without department
+Insert into projects values (201, 'Payroll System'), (202, 'AI Chatbot'), (203, 'Website Redesign');
+Insert into employeeprojects VALUES (101, 201), (102, 202), (103, 202), (103, 203), (104, 201);
+select e.employeeID, e.firstname, e.lastname, d.departmentname from employees e inner join departments d on e.departmentID=d.departmentID;
+
+select e.employeeID, e.firstname, e.lastname, d.departmentname from employees e left join departments d on e.departmentID=d.departmentID;
+
+select e.employeeID, e.firstname, e.lastname, d.departmentname from employees e right join departments d on e.departmentID=d.departmentID;
+
+
+select e.employeeID, e.firstname, e.lastname, d.departmentname from employees e left join departments d on e.departmentID=d.departmentID union select e.employeeID, e.firstname, e.lastname, d.departmentname from employees e right join departments d on e.departmentID=d.departmentID;
+
+select e.employeeID, e.firstname, p.projectname from employees e cross join projects p;
+
+select e.FirstName, e.LastName, p.ProjectName from Employees e join EmployeeProjects ep ON e.EmployeeID = ep.EmployeeID join Projects p on ep.ProjectID = p.ProjectID;
+
+select firstname, lastname, salary from employees where salary> (select avg(salary) from employees);
+
+select departmentname from departments where departmentID in (select departmentID from employees group by departmentID having avg(salary) >55000);
+
+select firstname, lastname, (select departmentname from departments d where d.departmentID=e.departmentID) as departmentname from employees e;
+
+create view empdetail as select e.employeeID, concat(e.firstname,' ',e.lastname) as empname, d.departmentname, p.projectname from employees e left join departments d on e.departmentID=d.departmentID left join employeeprojects ep on e.employeeID=ep.employeeID left join projects p on ep.projectID=P.projectID;
+
+SELECT * FROM empdetail;
+
