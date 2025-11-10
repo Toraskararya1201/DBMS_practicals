@@ -1,0 +1,69 @@
+use mapreduce_example;
+
+db.orders.insertMany([
+    { _id: 1, product: "Pen", category: "Stationery", price: 10, quantity: 5 },
+    { _id: 2, product: "Notebook", category: "Stationery", price: 50, quantity: 3 },
+    { _id: 3, product: "Pencil", category: "Stationery", price: 5, quantity: 10 },
+    { _id: 4, product: "Bag", category: "Accessories", price: 500, quantity: 2 },
+    { _id: 5, product: "Cap", category: "Accessories", price: 150, quantity: 4 }
+]);
+
+var mapFunction = function() {
+    var totalRevenue = this.price * this.quantity;
+    emit(this.category, totalRevenue);
+};
+
+var reduceFunction = function(keyCategory, valuesRevenue) {
+    return Array.sum(valuesRevenue);
+};
+
+db.orders.mapReduce(
+    mapFunction,
+    reduceFunction,
+    {
+        out: "category_revenue"
+    }
+);
+
+db.category_revenue.find().forEach(printjson);
+
+db.sales.insertMany([
+  { product: "Laptop", amount: 800, quantity: 2 },
+  { product: "Phone", amount: 500, quantity: 5 },
+  { product: "Laptop", amount: 800, quantity: 1 },
+  { product: "Tablet", amount: 300, quantity: 3 },
+  { product: "Phone", amount: 500, quantity: 2 }
+]);
+
+var mapFunction = function() {
+  emit(this.product, this.amount * this.quantity);
+};
+
+var reduceFunction = function(key, values) {
+  return Array.sum(values);
+};
+
+db.sales.mapReduce(
+  mapFunction,
+  reduceFunction,
+  {
+    out: "total_sales"
+  }
+);
+
+db.total_sales.find().pretty();
+
+db.sales.aggregate([
+  {
+    $group: {
+      _id: "$product",
+      totalSales: { $sum: { $multiply: ["$amount", "$quantity"] } }
+    }
+  },
+  {
+    $out: "total_sales"
+  }
+]);
+
+
+db.total_sales.find().pretty();
